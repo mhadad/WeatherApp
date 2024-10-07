@@ -6,7 +6,6 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mf.weatherapp.data.dao.SearchQueriesDAO
 import com.mf.weatherapp.data.models.NetworkReqStates
@@ -15,17 +14,12 @@ import com.mf.weatherapp.data.models.SearchQueries
 import com.mf.weatherapp.data.models.UiStates
 import com.mf.weatherapp.data.models.WeatherForecast
 import com.mf.weatherapp.data.repositories.LocationManager
-import com.mf.weatherapp.data.repositories.network.ApiService
 import com.mf.weatherapp.data.repositories.network.ApiService_Kotlin
-import com.mf.weatherapp.data.repositories.network.RetrofitInstance
 import com.mf.weatherapp.data.repositories.network.utils.Utils
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
-import io.reactivex.rxjava3.disposables.CompositeDisposable
-import io.reactivex.rxjava3.schedulers.Schedulers
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -35,12 +29,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import retrofit2.Response
-import retrofit2.Retrofit
 import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
 class WeatherForecastViewModel @Inject constructor(val restAPICaller: ApiService_Kotlin, val locationManager: LocationManager, val searchQueriesDAO: SearchQueriesDAO, application: Application ) : AndroidViewModel(application) {
+    private var currentCoroutineJob: Job? =null
     var searchQueries: StateFlow<List<SearchQueries>> = searchQueriesDAO.getAllSearchQueries().stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = emptyList())
     var appID: String = "da33f5713dbaf998ae0fd094c401a24d"
     var _weatherForecastState : MutableStateFlow<Pair<UiStates, WeatherForecast?>> = MutableStateFlow(Pair(UiStates(NetworkReqStates.EMPTY, null), null))
@@ -82,7 +76,7 @@ class WeatherForecastViewModel @Inject constructor(val restAPICaller: ApiService
 
 
     fun getWeatherForecastByCoordinates(latitude: Long, longitude: Long, appID: String){
-        viewModelScope.launch(Dispatchers.IO) {
+        currentCoroutineJob = viewModelScope.launch(Dispatchers.IO) {
             try {
                 setLoadingState()
                 if(Utils.isNetworkAvailable(this@WeatherForecastViewModel.context)) {
@@ -116,7 +110,7 @@ class WeatherForecastViewModel @Inject constructor(val restAPICaller: ApiService
                 e.message?.let {
                     Log.e("Exception", it)
                     postWeatherForecastRequestsError(it)
-                    cancelAllCoroutines(it)
+                    cancelAllCurrentCoroutineJob(it)
                 }
 
             }
@@ -124,7 +118,7 @@ class WeatherForecastViewModel @Inject constructor(val restAPICaller: ApiService
     }
 
     fun getLocation(){
-        viewModelScope.launch(Dispatchers.IO) {
+        currentCoroutineJob = viewModelScope.launch(Dispatchers.IO) {
             try {
                 setLoadingState()
                 locationManager.startLocationUpdates()
@@ -133,7 +127,7 @@ class WeatherForecastViewModel @Inject constructor(val restAPICaller: ApiService
                 e.message?.let {
                     Log.e("Exception", it)
                     postGeocodingError(it)
-                    cancelAllCoroutines(it)
+                    cancelAllCurrentCoroutineJob(it)
                 }
 
             }
@@ -141,7 +135,7 @@ class WeatherForecastViewModel @Inject constructor(val restAPICaller: ApiService
     }
 
     fun getLocationDataByCoordinates(latitude: Long, longitude: Long, appID: String){
-        viewModelScope.launch(Dispatchers.IO) {
+        currentCoroutineJob = viewModelScope.launch(Dispatchers.IO) {
             try {
                 setLoadingState()
                 if(Utils.isNetworkAvailable(this@WeatherForecastViewModel.context)) {
@@ -177,7 +171,7 @@ class WeatherForecastViewModel @Inject constructor(val restAPICaller: ApiService
                 e.message?.let {
                     Log.e("Exception", it)
                     postGeocodingError(it)
-                    cancelAllCoroutines(it)
+                    cancelAllCurrentCoroutineJob(it)
                 }
             }
         }
@@ -185,7 +179,8 @@ class WeatherForecastViewModel @Inject constructor(val restAPICaller: ApiService
 
     fun getLocationDataByZipCode(zipCode: String){
         var zipCode_countryCode = "${zipCode},US"
-        viewModelScope.launch(Dispatchers.IO)
+
+         currentCoroutineJob = viewModelScope.launch(Dispatchers.IO)
         {
             try {
                 setLoadingState()
@@ -221,7 +216,7 @@ class WeatherForecastViewModel @Inject constructor(val restAPICaller: ApiService
                     e.message?.let {
                         Log.e("Exception", it)
                         postGeocodingError(it)
-                        cancelAllCoroutines(it)
+                        cancelAllCurrentCoroutineJob(it)
                     }
                 }
         }
@@ -250,7 +245,7 @@ class WeatherForecastViewModel @Inject constructor(val restAPICaller: ApiService
     }
 
     private suspend fun getLocationDataByCityName(cityName: String){
-        viewModelScope.launch(Dispatchers.IO)
+        currentCoroutineJob = viewModelScope.launch(Dispatchers.IO)
         {
             try {
                 setLoadingState()
@@ -266,14 +261,14 @@ class WeatherForecastViewModel @Inject constructor(val restAPICaller: ApiService
                 e.message?.let {
                     Log.e("Exception", it)
                     postWeatherForecastRequestsError(it)
-                    cancelAllCoroutines(it)
+                    cancelAllCurrentCoroutineJob(it)
                 }
             }
         }
     }
 
     private suspend fun getLocationDataByCityName_CountryCode(cityName_CountryCode: String) {
-        viewModelScope.launch(Dispatchers.IO)
+        currentCoroutineJob = viewModelScope.launch(Dispatchers.IO)
         {
             try {
                 setLoadingState()
@@ -294,13 +289,13 @@ class WeatherForecastViewModel @Inject constructor(val restAPICaller: ApiService
                 e.message?.let {
                     Log.e("Exception", it)
                     postWeatherForecastRequestsError(it)
-                    cancelAllCoroutines(it)
+                    cancelAllCurrentCoroutineJob(it)
                 }
             }
         }
     }
     private suspend fun getLocationDataByCityName_StateCode_CountryCode(cityName_CountryCode: String) {
-        viewModelScope.launch(Dispatchers.IO)
+        currentCoroutineJob = viewModelScope.launch(Dispatchers.IO)
         {
             try {
                 setLoadingState()
@@ -320,7 +315,7 @@ class WeatherForecastViewModel @Inject constructor(val restAPICaller: ApiService
                 e.message?.let {
                     Log.e("Exception", it)
                     postWeatherForecastRequestsError(it)
-                    cancelAllCoroutines(it)
+                    cancelAllCurrentCoroutineJob(it)
                 }
             }
         }
@@ -367,8 +362,10 @@ class WeatherForecastViewModel @Inject constructor(val restAPICaller: ApiService
         if(searchQueriesDAO.doSearchQueryExist(searchQuery)==0)
             searchQueriesDAO.insertOne(SearchQueries(searchQuery))
     }
-    private fun cancelAllCoroutines(message: String){
-        viewModelScope.cancel(message)
+    private fun cancelAllCurrentCoroutineJob(message: String){
+        currentCoroutineJob?.let { 
+         it.cancel(message)   
+        }
     }
 
     override fun onCleared() {
