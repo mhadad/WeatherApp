@@ -4,5 +4,5 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class WeatherConditions(@SerialName("weather") var weather: List<WeatherCondition>) {
+data class WeatherConditions(@SerialName("weather") val weather: List<WeatherCondition>) {
 }

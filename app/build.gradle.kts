@@ -73,7 +73,20 @@ dependencies {
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.converter.gson)
     implementation(libs.gson)
+    implementation(libs.kotlinx.coroutines.test)
+    implementation(libs.androidx.core.testing)
+    implementation(libs.mockito.inline)
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.room.common)
+    implementation(libs.androidx.room.ktx)
+    implementation(libs.coil.compose)
+    implementation(libs.adapter.rxjava3)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.androidx.core.testing)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -83,6 +96,7 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.51.1")
     kapt("com.google.dagger:hilt-android-compiler:2.52")
     implementation("androidx.compose.animation:animation:1.7.2")
+    kapt("androidx.room:room-compiler:2.6.1")
 }
 kapt {
     correctErrorTypes = true

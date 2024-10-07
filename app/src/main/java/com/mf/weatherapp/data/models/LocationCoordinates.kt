@@ -4,6 +4,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class LocationCoordinates(@SerialName("lon") var lon : String, @SerialName("lat") var lat: String) {
+data class LocationCoordinates(@SerialName("lon") val lon : String, @SerialName("lat") val lat: String) {
 
 }

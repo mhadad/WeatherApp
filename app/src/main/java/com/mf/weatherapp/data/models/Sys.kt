@@ -4,5 +4,5 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Sys(@SerialName("type") var type: Int, @SerialName("id") var id : Int, @SerialName("country") var country : String, @SerialName("sunrise") var sunrise : Long, @SerialName("sunset") var sunset: Long) {
+data class Sys(@SerialName("type") val type: Int, @SerialName("id") val id : Int, @SerialName("country") val country : String, @SerialName("sunrise") val sunrise : Long, @SerialName("sunset") val sunset: Long) {
 }

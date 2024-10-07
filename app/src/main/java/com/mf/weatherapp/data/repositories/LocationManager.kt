@@ -19,12 +19,13 @@ import javax.inject.Singleton
 
 @Singleton
 class LocationManager @Inject constructor(@ApplicationContext private val context: Context) {
-//        var currentLocation: MutableStateFlow<Pair<UiStates,Location?>> = MutableStateFlow(Pair(UiStates.EMPTY, null))
 var currentLocation: MutableLiveData<Pair<NetworkReqStates,Location?>> = MutableLiveData(Pair(NetworkReqStates.EMPTY, null))
         var fusedLocationClient: FusedLocationProviderClient
 init {
     fusedLocationClient = provideFusedLocationProviderClient(this.context )
 }
+
+
 fun provideFusedLocationProviderClient(
      context: Context
 ): FusedLocationProviderClient
@@ -45,15 +46,12 @@ fun provideFusedLocationProviderClient(
                     override fun onLocationResult(locationResult: LocationResult) {
                         super.onLocationResult(locationResult)
                         // Update the location
-//                        currentLocation.update{Pair(UiStates.SUCCESS, locationResult.lastLocation)}
-//                        currentLocation.value. = Pair(UiStates.SUCCESS, locationResult.lastLocation)
-//                        currentLocation = MutableStateFlow(Pair(UiStates.SUCCESS, locationResult.lastLocation))
                         currentLocation.postValue(Pair(NetworkReqStates.SUCCESS, locationResult.lastLocation))
 
                     }
+
                 },
                 Looper.getMainLooper()
             )
         }
-//    }
 }
