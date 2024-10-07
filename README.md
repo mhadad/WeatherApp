@@ -37,4 +37,3 @@
     5- If location permissions were given the current weather conditions could be retrieved using location coordinates (Latitude & Longitude)
     
 
-      ![myFile](LAST_Screen_recording_20241007_104903.gif)
